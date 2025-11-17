@@ -89,36 +89,59 @@ def encontrar_hosts_activos(subdominios_con_ip):
     print(f"[+] Encontrados {len(hosts_activos)} hosts activos.")
     return hosts_activos
 
-# --- MÓDULO 3: ESCANEO DE PUERTOS ---
+
+# --- MÓDULO 3: ESCANEO DE PUERTOS (CON BANNER GRABBING) ---
 def escanear_puertos(hosts_activos):
     """
     Toma un DICCIONARIO de hosts activos y escanea sus puertos.
+    También intenta "agarrar el banner" de los puertos abiertos.
     """
-    print(f"\n[+] Escaneando puertos en {len(hosts_activos)} hosts...")
+    print(f"\n[+] Módulo 3: Escaneando puertos en {len(hosts_activos)} hosts...")
     puertos_comunes = [21, 22, 25, 53, 80, 110, 143, 443, 3306, 8080, 8443]
 
-    # CAMBIO: Iterar sobre .items()
     for host, ip in hosts_activos.items():
         print(f"  [+] Escaneando {host} ({ip})...")
         
         for puerto in puertos_comunes:
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.settimeout(0.5)
+                s.settimeout(0.5) # Importante para el connect Y para el recv
                 
-                # CAMBIO: Conectar a la IP, no al 'host'. Es más rápido.
                 resultado = s.connect_ex((ip, puerto))
                 
                 if resultado == 0:
-                    # Reportamos el 'host' y el 'puerto'
+                    # ¡Puerto abierto!
                     print(f"    [>>>] ¡PUERTO ABIERTO! {host} ({ip}):{puerto}")
-                
+
+                    # --- INICIO DEL MÓDULO 4 (BANNER GRABBING) ---
+                    # No lo intentamos en puertos web, porque ellos esperan que hablemos primero.
+                    if puerto != 80 and puerto != 443:
+                        try:
+                            # Intentamos recibir 1024 bytes de datos
+                            banner_bytes = s.recv(1024)
+                            # Convertimos los bytes a string
+                            # Usamos errors='ignore' por si devuelve caracteres extraños
+                            banner = banner_bytes.decode('utf-8', errors='ignore').strip()
+                            
+                            if banner:
+                                # Imprimimos solo la primera línea del banner
+                                print(f"        [+] BANNER: {banner.splitlines()[0]}")
+
+                        except socket.timeout:
+                            # Si no recibimos nada en 0.5s, es un timeout.
+                            print("        [+] BANNER: (Timeout - No se recibió banner)")
+                        except Exception as e:
+                            # Otro posible error
+                            print(f"        [+] BANNER: (Error al leer: {e})")
+                    # --- FIN DEL MÓDULO 4 ---
+
+                # Cerramos la conexión, ya sea que estuviera abierta o no
                 s.close()
 
             except Exception as e:
                 print(f"  [!] Error de socket en {host} ({ip}):{puerto}: {e}")
 
-    print(f"\n[+] Escaneo de puertos completado")
+    print(f"\n[+] Escaneo de puertos completado.")
 
 
 # --- FUNCIÓN PRINCIPAL (EL "PEGAMENTO") ---

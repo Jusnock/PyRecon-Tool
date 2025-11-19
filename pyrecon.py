@@ -5,6 +5,7 @@ import sys            # Para leer argumentos de la terminal (el dominio)
 import requests       # Para el Módulo 1 (API)
 import socket         # Para el Módulo 3 (Escáner de puertos)
 from scapy.all import IP, ICMP, sr1, conf  # Para el Módulo 2 (Ping)
+import argparse
 
 # Configuración de Scapy para que sea menos "ruidoso" en la consola
 conf.verb = 0
@@ -91,18 +92,17 @@ def encontrar_hosts_activos(subdominios_con_ip):
 
 
 # --- MÓDULO 3: ESCANEO DE PUERTOS (CON BANNER GRABBING) ---
-def escanear_puertos(hosts_activos):
+def escanear_puertos(hosts_activos,lista_puertos):
     """
     Toma un DICCIONARIO de hosts activos y escanea sus puertos.
     También intenta "agarrar el banner" de los puertos abiertos.
     """
     print(f"\n[+] Módulo 3: Escaneando puertos en {len(hosts_activos)} hosts...")
-    puertos_comunes = [21, 22, 25, 53, 80, 110, 143, 443, 3306, 8080, 8443]
 
     for host, ip in hosts_activos.items():
         print(f"  [+] Escaneando {host} ({ip})...")
         
-        for puerto in puertos_comunes:
+        for puerto in lista_puertos:
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.settimeout(0.5) # Importante para el connect Y para el recv
@@ -146,25 +146,42 @@ def escanear_puertos(hosts_activos):
 
 # --- FUNCIÓN PRINCIPAL---
 def main():
-    if len(sys.argv) != 2:
-        print("Error: Debes pasar un dominio como argumento.")
-        print("Uso: python3 pyrecon.py google.com")
+    # Creamos la variable parser
+    parser = argparse.ArgumentParser(description="Herramienta de reconocimiento PyRecon")
+
+    # Pasamos a agregar los argeumentos
+    # Primer arguemtno: dominio que vamos a apuntar
+    parser.add_argument("-t", "--target", required=True, help="Dominio objetivo")
+
+    # Segundo argumento: puertos que vamos a apuntar
+    parser.add_argument("-p", "--ports", default="21,22,80,443",help="Lista de puertos comunes (21,22,80,443)")
+
+    # Ahora vamos a parsear los argumentos
+    args = parser.parse_args()
+
+    dominio_objetivo = args.target
+
+    # Convertimos el string de puertos en una lista de numeros
+    try:
+
+        lista_puertos = [int(p) for p in args.ports.split(',')]
+
+    except ValueError:
+        print("Error: Los puertos deben ser numero separados por como o ingresar un solo puerto")
         sys.exit(1)
-    
-    dominio_objetivo = sys.argv[1]
-    
-    print(f"--- Iniciando PyRecon para: {dominio_objetivo} ---")
-    
-    # La variable ahora contiene el diccionario {host: ip}
-    subdominios_con_ip = encontrar_subdominios(dominio_objetivo)
-    
-    # Pasar el diccionario
+
+    print(f"---Iniciando PyRecon para: {dominio_objetivo} ---")
+    print(f"---Puertos a escanear: {lista_puertos} ---")
+
+    subdominios_con_ip=encontrar_subdominios(dominio_objetivo)
+
     if subdominios_con_ip:
-        hosts_vivos_dict = encontrar_hosts_activos(subdominios_con_ip)
-        
-        # Pasar el diccionario de hosts vivos
-        if hosts_vivos_dict:
-            escanear_puertos(hosts_vivos_dict)
+        host_vivos_dict = encontrar_hosts_activos(subdominios_con_ip)
+
+        if host_vivos_dict:
+            escanear_puertos(host_vivos_dict,lista_puertos)
+
+    
 
     print(f"\n--- PyRecon para {dominio_objetivo} completado ---")
 

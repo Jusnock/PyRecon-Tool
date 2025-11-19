@@ -62,9 +62,8 @@ Para correr este script, necesitarás `Python 3` y las librerías `requests` y `
 
 ## Modo de Uso
 
-Debido a que `scapy` necesita crear "raw sockets" para enviar paquetes ICMP, el script **debe ejecutarse con permisos de administrador (`sudo`)**.
+El script utiliza argumentos (flags) para configurar el escaneo. Se requiere permisos de administrador (`sudo`) para el módulo de ping.
 
-El script se ejecuta desde la terminal, pasándole el dominio objetivo como argumento.
-
+### Sintaxis Básica
 ```bash
-sudo venv/bin/python3 pyrecon.py <dominio.com>
+sudo venv/bin/python3 pyrecon.py -t <DOMINIO> [-p <PUERTOS>]

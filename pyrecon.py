@@ -144,7 +144,7 @@ def escanear_puertos(hosts_activos):
     print(f"\n[+] Escaneo de puertos completado.")
 
 
-# --- FUNCIÓN PRINCIPAL (EL "PEGAMENTO") ---
+# --- FUNCIÓN PRINCIPAL---
 def main():
     if len(sys.argv) != 2:
         print("Error: Debes pasar un dominio como argumento.")
@@ -155,14 +155,14 @@ def main():
     
     print(f"--- Iniciando PyRecon para: {dominio_objetivo} ---")
     
-    # CAMBIO: La variable ahora contiene el diccionario {host: ip}
+    # La variable ahora contiene el diccionario {host: ip}
     subdominios_con_ip = encontrar_subdominios(dominio_objetivo)
     
-    # CAMBIO: Pasar el diccionario
+    # Pasar el diccionario
     if subdominios_con_ip:
         hosts_vivos_dict = encontrar_hosts_activos(subdominios_con_ip)
         
-        # CAMBIO: Pasar el diccionario de hosts vivos
+        # Pasar el diccionario de hosts vivos
         if hosts_vivos_dict:
             escanear_puertos(hosts_vivos_dict)
 

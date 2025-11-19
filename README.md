@@ -38,8 +38,8 @@ Para correr este script, necesitarás `Python 3` y las librerías `requests` y `
 
 1.  **Clona el repositorio:**
     ```bash
-    git clone [https://github.com/TU_USUARIO/TU_REPOSITORIO.git](https://github.com/TU_USUARIO/TU_REPOSITORIO.git)
-    cd TU_REPOSITORIO
+    git clone https://github.com/Jusnock/PyRecon-Tool.git
+    cd PyRecon-Tool
     ```
 
 2.  **Crea un entorno virtual:**
